@@ -1,8 +1,5 @@
 
 
-```markdown
-# 🔐 Attribute-Based Encryption (ABE) for Secure Multi-Cloud Data Sharing
-
 This is the **partial implementation** of a final year major project focused on **Ciphertext-Policy Attribute-Based Encryption (CP-ABE)** to enable secure file sharing between cloud platforms like AWS, Google Cloud, and Azure.
 
 ---
