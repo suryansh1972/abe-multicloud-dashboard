@@ -100,60 +100,148 @@ This is the **partial implementation** focused on:
 
 # CP-ABE File Encryption System
 
-A Flask-based application that implements Ciphertext-Policy Attribute-Based Encryption (CP-ABE) for secure file sharing.
+A secure file encryption system using Ciphertext-Policy Attribute-Based Encryption (CP-ABE). This system allows you to encrypt files with specific access policies, ensuring that only users with the required attributes can decrypt them.
+
+## Features
+
+- Modern, dark-themed UI
+- Docker support for easy deployment
+- Attribute-based access control
+- Support for any file type
+- Secure encryption using CP-ABE
+- Progress tracking for file operations
 
 ## Prerequisites
 
 - Docker installed on your system
-- Git (optional, for cloning the repository)
+- Git (for cloning the repository)
+- At least 2GB of free RAM (for PBC library compilation)
 
-## Quick Start with Docker
+## Installation
 
-1. Clone the repository (or download the files):
+1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/yourusername/abe-multicloud-dashboard.git
 cd abe-multicloud-dashboard
 ```
 
 2. Build the Docker image:
 ```bash
-docker build -t abe-app .
+docker build -t cp-abe-app .
 ```
 
-3. Run the container:
+## Running the Application
+
+1. Start the container:
 ```bash
-docker run -p 5000:5000 -v $(pwd)/uploads:/app/uploads -v $(pwd)/decrypted:/app/decrypted -v $(pwd)/abe/keys:/app/abe/keys abe-app
+docker run -d -p 5001:5000 \
+  -v $(pwd)/uploads:/app/uploads \
+  -v $(pwd)/decrypted:/app/decrypted \
+  -v $(pwd)/abe:/app/abe \
+  cp-abe-app
 ```
 
-The application will be available at `http://localhost:5000`
+2. Access the application:
+   - Open your web browser
+   - Go to: http://localhost:5001
 
-## Features
+## Using the Application
 
-- File encryption with attribute-based access control
-- Secure file sharing based on user attributes
-- Web-based interface for easy file management
+### Encrypting Files
 
-## Usage
+1. Go to the "Encrypt File" section
+2. Click "Choose a file" or drag and drop your file
+3. Enter the access policy in the format:
+   - For AND conditions: `attribute1 AND attribute2`
+   - For OR conditions: `attribute1 OR attribute2`
+   - Example: `admin AND finance` (requires both attributes)
+4. Click "Encrypt File"
+5. The encrypted file will be saved in the `uploads` directory
 
-1. **Encrypt a File**:
-   - Upload a file
-   - Specify access policy attributes (comma-separated)
-   - Click "Encrypt File"
+### Decrypting Files
 
-2. **Decrypt a File**:
-   - Upload an encrypted file
-   - Provide your attributes
-   - Click "Decrypt File"
+1. Go to the "Decrypt File" section
+2. Upload the encrypted file
+3. Enter your attributes (comma-separated)
+   - Example: `admin, finance`
+4. Click "Decrypt File"
+5. The decrypted file will be saved in the `decrypted` directory
+
+## Access Policy Examples
+
+1. Simple AND policy:
+   ```
+   admin AND finance
+   ```
+   - Only users with both "admin" AND "finance" attributes can decrypt
+
+2. Simple OR policy:
+   ```
+   admin OR finance
+   ```
+   - Users with either "admin" OR "finance" attribute can decrypt
+
+3. Complex policy:
+   ```
+   (admin AND finance) OR (hr AND manager)
+   ```
+   - Users must have either:
+     - Both "admin" AND "finance" attributes, OR
+     - Both "hr" AND "manager" attributes
 
 ## Directory Structure
 
-- `uploads/`: Stores encrypted files
-- `decrypted/`: Stores decrypted files
-- `abe/keys/`: Stores ABE keys and metadata
+```
+abe-multicloud-dashboard/
+├── abe/               # CP-ABE implementation
+│   └── keys/         # Master keys storage
+├── uploads/          # Encrypted files
+├── decrypted/        # Decrypted files
+├── templates/        # HTML templates
+├── app.py           # Main application
+├── requirements.txt # Python dependencies
+└── Dockerfile       # Docker configuration
+```
 
-## Notes
+## Troubleshooting
 
-- The Docker container mounts local directories for persistent storage
-- Make sure the mounted directories have proper write permissions
-- The application uses port 5000 by default
+1. **Port already in use**:
+   - If you see "Ports are not available" error, try using a different port:
+   ```bash
+   docker run -d -p 5002:5000 ...  # Change 5001 to 5002
+   ```
+
+2. **Permission issues**:
+   - If you encounter permission errors with the mounted volumes, try:
+   ```bash
+   chmod -R 777 uploads decrypted abe/keys
+   ```
+
+3. **Docker build fails**:
+   - Ensure you have enough RAM (at least 2GB free)
+   - Check your internet connection
+   - Try cleaning Docker cache:
+   ```bash
+   docker system prune -a
+   ```
+
+## Security Notes
+
+- The master keys are stored in `abe/keys/`
+- Keep these keys secure and never share them
+- The encrypted files are stored in `uploads/`
+- Decrypted files are stored in `decrypted/`
+- Consider using a secure method to distribute attributes to users
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
