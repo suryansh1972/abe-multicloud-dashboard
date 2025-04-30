@@ -40,29 +40,7 @@ This is the **partial implementation** of a final year major project focused on 
 ├── decrypted/
 ```
 
----
 
-## 🧪 How to Run
-
-1. **Install dependencies**
-
-```bash
-pip install -r requirements.txt
-```
-
-2. **Run the Flask app**
-
-```bash
-python app.py
-```
-
-3. **Go to your browser**
-
-```
-http://localhost:5000
-```
-
----
 
 ## 🔐 Encryption Example
 
@@ -233,13 +211,6 @@ abe-multicloud-dashboard/
 - Decrypted files are stored in `decrypted/`
 - Consider using a secure method to distribute attributes to users
 
-## Contributing
-
-1. Fork the repository
-2. Create your feature branch
-3. Commit your changes
-4. Push to the branch
-5. Create a Pull Request
 
 ## License
 
