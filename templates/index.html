@@ -5,77 +5,472 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CP-ABE File Encryption</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
     <style>
+        :root {
+            --primary-color: #6c5ce7;
+            --secondary-color: #a29bfe;
+            --dark-bg: #1a1a2e;
+            --darker-bg: #16213e;
+            --card-bg: #0f3460;
+            --text-color: #e6e6e6;
+            --success-color: #00b894;
+            --danger-color: #ff7675;
+            --gradient-1: linear-gradient(135deg, #6c5ce7, #a29bfe);
+            --gradient-2: linear-gradient(135deg, #00b894, #00d8a0);
+        }
+
+        body {
+            background-color: var(--dark-bg);
+            color: var(--text-color);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(108, 92, 231, 0.1) 0%, transparent 20%),
+                radial-gradient(circle at 90% 80%, rgba(0, 184, 148, 0.1) 0%, transparent 20%);
+        }
+
         .container {
-            max-width: 800px;
-            margin-top: 50px;
+            max-width: 1200px;
+            margin-top: 2rem;
+            padding-bottom: 3rem;
         }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem;
+            background: rgba(15, 52, 96, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            animation: fadeInDown 1s ease;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            animation: pulse 2s infinite;
+        }
+
         .card {
-            margin-bottom: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            background: rgba(15, 52, 96, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(108, 92, 231, 0.2);
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease;
         }
-        .form-group {
-            margin-bottom: 20px;
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+            border-color: rgba(108, 92, 231, 0.4);
+        }
+
+        .card-header {
+            background: rgba(22, 33, 62, 0.7);
+            border-bottom: 2px solid var(--primary-color);
+            border-radius: 20px 20px 0 0 !important;
+            padding: 1.5rem;
+        }
+
+        .card-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .form-control {
+            background-color: rgba(22, 33, 62, 0.7);
+            border: 1px solid rgba(108, 92, 231, 0.3);
+            color: var(--text-color);
+            border-radius: 15px;
+            padding: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus {
+            background-color: rgba(22, 33, 62, 0.9);
+            color: var(--text-color);
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 0.25rem rgba(108, 92, 231, 0.25);
+        }
+
+        .form-label {
+            color: var(--text-color);
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn-primary {
+            background: var(--gradient-1);
+            border: none;
+            border-radius: 15px;
+            padding: 1rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(108, 92, 231, 0.4);
+        }
+
+        .btn-primary::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: 0.5s;
+        }
+
+        .btn-primary:hover::after {
+            left: 100%;
+        }
+
+        .btn-success {
+            background: linear-gradient(45deg, var(--success-color), #00d8a0);
+            border: none;
+            border-radius: 10px;
+            padding: 0.8rem 2rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 184, 148, 0.4);
+        }
+
+        .alert {
+            border-radius: 10px;
+            border: none;
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .alert-info {
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+            height: 100%;
+        }
+
+        .file-input-label {
+            display: block;
+            padding: 2rem;
+            background-color: rgba(22, 33, 62, 0.7);
+            border: 2px dashed rgba(108, 92, 231, 0.3);
+            border-radius: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .file-input-label:hover {
+            background-color: rgba(15, 52, 96, 0.9);
+            border-color: var(--secondary-color);
+            transform: scale(1.02);
+        }
+
+        .file-input-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary-color);
+            animation: bounce 2s infinite;
+        }
+
+        .attributes-hint {
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+            margin-top: 0.5rem;
+        }
+
+        .progress-container {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+            background-color: rgba(22, 33, 62, 0.7);
+        }
+
+        .progress-bar {
+            background: var(--gradient-1);
+            border-radius: 5px;
+        }
+
+        .status-message {
+            margin-top: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--secondary-color);
+        }
+
+        .floating-badge {
+            position: absolute;
+            top: -10px;
+            right: -10px;
+            background: var(--gradient-1);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            animation: pulse 2s infinite;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-color);
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-top: 2rem;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 200px;
+            background-color: var(--darker-bg);
+            color: var(--text-color);
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1 class="text-center mb-4">CP-ABE File Encryption</h1>
+        <div class="header">
+            <h1><i class="fas fa-lock"></i> CP-ABE File Encryption</h1>
+            <p class="lead">Secure file sharing with attribute-based encryption</p>
+        </div>
         
         {% with messages = get_flashed_messages() %}
             {% if messages %}
                 {% for message in messages %}
                     <div class="alert alert-info alert-dismissible fade show" role="alert">
-                        {{ message }}
+                        <i class="fas fa-info-circle me-2"></i>{{ message }}
                         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                     </div>
                 {% endfor %}
             {% endif %}
         {% endwith %}
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Encrypt File</h5>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-shield-alt"></i>
+                            Encrypt File
+                            <span class="floating-badge">Secure</span>
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data" id="encryptForm">
+                            <div class="mb-4">
+                                <label class="form-label">Select File</label>
+                                <div class="file-input-wrapper">
+                                    <label class="file-input-label">
+                                        <i class="fas fa-cloud-upload-alt file-input-icon"></i>
+                                        <div>Choose a file or drag it here</div>
+                                        <input type="file" class="form-control" name="file" required>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="attributes" class="form-label">
+                                    Access Policy
+                                    <i class="fas fa-question-circle tooltip">
+                                        <span class="tooltiptext">Specify who can access the file using attributes (e.g., admin, finance)</span>
+                                    </i>
+                                </label>
+                                <input type="text" class="form-control" id="attributes" name="attributes" 
+                                       placeholder="e.g., admin, finance, hr" required>
+                            </div>
+                            <div class="progress-container" id="encryptProgress">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div class="status-message">Encrypting file...</div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-lock me-2"></i>Encrypt File
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
-            <div class="card-body">
-                <form action="{{ url_for('upload_file') }}" method="post" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="file" class="form-label">Select File</label>
-                        <input type="file" class="form-control" id="file" name="file" required>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title">
+                            <i class="fas fa-unlock"></i>
+                            Decrypt File
+                            <span class="floating-badge">Access</span>
+                        </h5>
                     </div>
-                    <div class="form-group">
-                        <label for="attributes" class="form-label">Access Policy (comma-separated attributes)</label>
-                        <input type="text" class="form-control" id="attributes" name="attributes" 
-                               placeholder="e.g., admin, finance, hr" required>
-                        <small class="form-text text-muted">Example: admin and finance and hr</small>
+                    <div class="card-body">
+                        <form action="{{ url_for('decrypt') }}" method="post" enctype="multipart/form-data" id="decryptForm">
+                            <div class="mb-4">
+                                <label class="form-label">Select Encrypted File</label>
+                                <div class="file-input-wrapper">
+                                    <label class="file-input-label">
+                                        <i class="fas fa-file-import file-input-icon"></i>
+                                        <div>Choose an encrypted file</div>
+                                        <input type="file" class="form-control" name="file" required>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="user_attributes" class="form-label">
+                                    Your Attributes
+                                    <i class="fas fa-question-circle tooltip">
+                                        <span class="tooltiptext">Enter your attributes to verify access rights</span>
+                                    </i>
+                                </label>
+                                <input type="text" class="form-control" id="user_attributes" name="user_attributes" 
+                                       placeholder="e.g., admin, finance" required>
+                            </div>
+                            <div class="progress-container" id="decryptProgress">
+                                <div class="progress">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                                </div>
+                                <div class="status-message">Decrypting file...</div>
+                            </div>
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="fas fa-key me-2"></i>Decrypt File
+                            </button>
+                        </form>
                     </div>
-                    <button type="submit" class="btn btn-primary">Encrypt File</button>
-                </form>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h5 class="card-title mb-0">Decrypt File</h5>
-            </div>
-            <div class="card-body">
-                <form action="{{ url_for('decrypt') }}" method="post" enctype="multipart/form-data">
-                    <div class="form-group">
-                        <label for="encrypted_file" class="form-label">Select Encrypted File</label>
-                        <input type="file" class="form-control" id="encrypted_file" name="file" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="user_attributes" class="form-label">Your Attributes (comma-separated)</label>
-                        <input type="text" class="form-control" id="user_attributes" name="user_attributes" 
-                               placeholder="e.g., admin, finance" required>
-                    </div>
-                    <button type="submit" class="btn btn-success">Decrypt File</button>
-                </form>
-            </div>
+        <div class="footer">
+            <p>CP-ABE File Encryption System | Secure your files with attribute-based encryption</p>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // File input handling
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function(e) {
+                const fileName = e.target.files[0]?.name || 'No file chosen';
+                this.parentElement.querySelector('div').textContent = fileName;
+            });
+
+            // Drag and drop functionality
+            input.parentElement.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                input.parentElement.style.borderColor = 'var(--primary-color)';
+                input.parentElement.style.transform = 'scale(1.02)';
+            });
+
+            input.parentElement.addEventListener('dragleave', (e) => {
+                e.preventDefault();
+                input.parentElement.style.borderColor = 'rgba(108, 92, 231, 0.3)';
+                input.parentElement.style.transform = 'scale(1)';
+            });
+
+            input.parentElement.addEventListener('drop', (e) => {
+                e.preventDefault();
+                input.parentElement.style.borderColor = 'rgba(108, 92, 231, 0.3)';
+                input.parentElement.style.transform = 'scale(1)';
+                input.files = e.dataTransfer.files;
+                const fileName = e.dataTransfer.files[0]?.name || 'No file chosen';
+                input.parentElement.querySelector('div').textContent = fileName;
+            });
+        });
+
+        // Form submission handling
+        document.getElementById('encryptForm').addEventListener('submit', function() {
+            const progress = document.getElementById('encryptProgress');
+            progress.style.display = 'block';
+            simulateProgress(progress.querySelector('.progress-bar'));
+        });
+
+        document.getElementById('decryptForm').addEventListener('submit', function() {
+            const progress = document.getElementById('decryptProgress');
+            progress.style.display = 'block';
+            simulateProgress(progress.querySelector('.progress-bar'));
+        });
+
+        function simulateProgress(progressBar) {
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 5;
+                    progressBar.style.width = width + '%';
+                }
+            }, 100);
+        }
+    </script>
 </body>
 </html>
