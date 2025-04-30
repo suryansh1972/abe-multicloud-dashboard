@@ -1,79 +1,109 @@
-from charm.toolbox.pairinggroup import PairingGroup, GT
-from charm.schemes.abenc.abenc_bsw07 import CPabe_BSW07
-from charm.core.engine.util import objectToBytes, bytesToObject
+from cryptography.fernet import Fernet
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 import os
+import base64
+import json
 import pickle
 
-group = PairingGroup('SS512')
-cpabe = CPabe_BSW07(group)
-
-def setup():
-    """Initialize CP-ABE system and generate master key and public parameters"""
-    (pk, msk) = cpabe.setup()
-    
-    # Save public key and master secret key
-    os.makedirs('abe/keys', exist_ok=True)
-    with open('abe/keys/pk.pickle', 'wb') as f:
-        pickle.dump(pk, f)
-    with open('abe/keys/msk.pickle', 'wb') as f:
-        pickle.dump(msk, f)
-    
-    return pk, msk
-
-def load_keys():
-    """Load public key and master secret key from files"""
-    with open('abe/keys/pk.pickle', 'rb') as f:
-        pk = pickle.load(f)
-    with open('abe/keys/msk.pickle', 'rb') as f:
-        msk = pickle.load(f)
-    return pk, msk
-
-def keygen(attributes):
-    """Generate a secret key for a set of attributes"""
-    pk, msk = load_keys()
-    sk = cpabe.keygen(pk, msk, attributes)
-    return sk
-
-def encrypt_file(file_path, policy):
-    """Encrypt a file using CP-ABE with the given policy"""
-    pk, _ = load_keys()
-    
-    # Read file content
-    with open(file_path, 'rb') as f:
-        file_content = f.read()
-    
-    # Convert policy to string if it's a list
-    if isinstance(policy, list):
-        policy = ' and '.join(policy)
-    
-    # Encrypt the file
-    ciphertext = cpabe.encrypt(pk, file_content, policy)
-    
-    # Save encrypted file
-    encrypted_file_path = f"{file_path}.enc"
-    with open(encrypted_file_path, 'wb') as f:
-        pickle.dump(ciphertext, f)
-    
-    return encrypted_file_path
-
-def decrypt_file(encrypted_file_path, attributes):
-    """Decrypt a file using CP-ABE with the given attributes"""
-    # Load encrypted file
-    with open(encrypted_file_path, 'rb') as f:
-        ciphertext = pickle.load(f)
-    
-    # Generate secret key for attributes
-    sk = keygen(attributes)
-    
-    # Decrypt the file
-    try:
-        decrypted_content = cpabe.decrypt(ciphertext, sk)
+class SimpleABE:
+    def __init__(self):
+        self.key_store = {}
+        self.policy_store = {}
+        os.makedirs('abe/keys', exist_ok=True)
+        
+    def setup(self):
+        """Initialize the encryption system"""
+        return True
+        
+    def encrypt_file(self, file_path, attributes):
+        """Encrypt a file with the given attributes"""
+        # Generate a new encryption key
+        key = Fernet.generate_key()
+        cipher_suite = Fernet(key)
+        
+        # Read and encrypt the file
+        with open(file_path, 'rb') as f:
+            file_data = f.read()
+        
+        encrypted_data = cipher_suite.encrypt(file_data)
+        
+        # Store the key and policy
+        file_id = os.path.basename(file_path)
+        self.key_store[file_id] = key
+        self.policy_store[file_id] = attributes
+        
+        # Save encrypted file
+        encrypted_file_path = f"{file_path}.enc"
+        with open(encrypted_file_path, 'wb') as f:
+            f.write(encrypted_data)
+            
+        # Save metadata
+        self._save_metadata()
+        
+        return encrypted_file_path
+        
+    def decrypt_file(self, encrypted_file_path, user_attributes):
+        """Decrypt a file if the user has the required attributes"""
+        file_id = os.path.basename(encrypted_file_path).replace('.enc', '')
+        
+        if file_id not in self.key_store:
+            raise Exception("File not found in key store")
+            
+        # Check if user has required attributes
+        required_attributes = set(self.policy_store[file_id])
+        user_attributes = set(user_attributes)
+        
+        if not required_attributes.issubset(user_attributes):
+            raise Exception("User does not have required attributes for decryption")
+            
+        # Decrypt the file
+        key = self.key_store[file_id]
+        cipher_suite = Fernet(key)
+        
+        with open(encrypted_file_path, 'rb') as f:
+            encrypted_data = f.read()
+            
+        decrypted_data = cipher_suite.decrypt(encrypted_data)
         
         # Save decrypted file
         decrypted_file_path = os.path.join('decrypted', os.path.basename(encrypted_file_path).replace('.enc', ''))
         with open(decrypted_file_path, 'wb') as f:
-            f.write(decrypted_content)
-        
+            f.write(decrypted_data)
+            
         return decrypted_file_path
-    except Exception as e:
-        raise Exception(f"Decryption failed: {str(e)}")
+        
+    def _save_metadata(self):
+        """Save encryption metadata to disk"""
+        metadata = {
+            'key_store': {k: base64.b64encode(v).decode() for k, v in self.key_store.items()},
+            'policy_store': self.policy_store
+        }
+        
+        with open('abe/keys/metadata.pickle', 'wb') as f:
+            pickle.dump(metadata, f)
+            
+    def _load_metadata(self):
+        """Load encryption metadata from disk"""
+        try:
+            with open('abe/keys/metadata.pickle', 'rb') as f:
+                metadata = pickle.load(f)
+                self.key_store = {k: base64.b64decode(v) for k, v in metadata['key_store'].items()}
+                self.policy_store = metadata['policy_store']
+        except FileNotFoundError:
+            pass
+
+# Create a global instance
+abe = SimpleABE()
+
+def setup():
+    """Initialize the ABE system"""
+    return abe.setup()
+
+def encrypt_file(file_path, attributes):
+    """Encrypt a file with the given attributes"""
+    return abe.encrypt_file(file_path, attributes)
+
+def decrypt_file(encrypted_file_path, user_attributes):
+    """Decrypt a file if the user has the required attributes"""
+    return abe.decrypt_file(encrypted_file_path, user_attributes)
